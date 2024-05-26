@@ -114,3 +114,149 @@ SELECT Students.Name, Exams.Name
 FROM StudentsExams
 JOIN Students ON StudentsExams.StudentID = Students.StudentID
 JOIN Exams ON StudentsExams.ExamID = Exams.ExamID
+
+--04.
+
+CREATE TABLE Teachers
+(
+	TeacherID INT PRIMARY KEY IDENTITY(101,1),
+	[Name] VARCHAR(32),
+	ManagerID INT FOREIGN KEY REFERENCES Teachers(TeacherID)
+)
+
+INSERT INTO Teachers(Name)
+	VALUES
+	('John'),
+	('Maya'),
+	('Silvia'),
+	('Ted'),
+	('Mark'),
+	('Greta')
+
+SELECT * FROM Teachers
+
+UPDATE Teachers
+SET ManagerID = NULL
+WHERE TeacherID = 101
+
+UPDATE Teachers
+SET ManagerID = 106
+WHERE TeacherID = 102
+
+UPDATE Teachers
+SET ManagerID = 106
+WHERE TeacherID = 103
+
+UPDATE Teachers
+SET ManagerID = 105
+WHERE TeacherID = 104
+
+UPDATE Teachers
+SET ManagerID = 101
+WHERE TeacherID = 105
+
+UPDATE Teachers
+SET ManagerID = 101
+WHERE TeacherID = 106
+
+--05.
+--CREATE E/R Diagram
+
+CREATE DATABASE OnlineStore
+USE OnlineStore
+
+CREATE TABLE ItemTypes
+(
+	ItemTypeID INT PRIMARY KEY IDENTITY,
+	[Name] VARCHAR(32) NOT NULL
+)
+
+CREATE TABLE Items
+(
+	ItemID INT PRIMARY KEY IDENTITY,
+	[Name] VARCHAR(32) NOT NULL,
+	ItemTypeID INT FOREIGN KEY REFERENCES ItemTypes(ItemTypeID)
+)
+
+CREATE TABLE Cities
+(
+	CityID INT PRIMARY KEY IDENTITY,
+	[Name] VARCHAR(32) NOT NULL
+)
+
+CREATE TABLE Customers
+(
+	CustomerID INT PRIMARY KEY IDENTITY,
+	[Name] VARCHAR(32) NOT NULL,
+	Birthday DATETIME2,
+	CityID INT FOREIGN KEY REFERENCES Cities(CityID)
+)
+
+CREATE TABLE Orders
+(
+	OrderID INT PRIMARY KEY IDENTITY,
+	CustomerID INT FOREIGN KEY REFERENCES Customers(CustomerID)
+)
+
+CREATE TABLE OrderItems
+(
+	OrderID INT FOREIGN KEY REFERENCES Orders(OrderID),
+	ItemID INT FOREIGN KEY REFERENCES Items(ItemID)
+	CONSTRAINT PK_OrdersItems PRIMARY KEY(OrderID, ItemID)
+)
+
+--06.
+--CREATE E/R Diagram
+
+CREATE DATABASE University
+USE University
+
+CREATE TABLE Majors
+(
+	MajorID INT PRIMARY KEY IDENTITY,
+	[Name] VARCHAR(32)
+)
+
+CREATE TABLE Students
+(
+	StudentID INT PRIMARY KEY IDENTITY,
+	StudentNumber VARCHAR(32),
+	StudentName VARCHAR(32),
+	MajorID INT FOREIGN KEY REFERENCES Majors(MajorID)
+)
+
+CREATE TABLE Payments
+(
+	PaymentID INT PRIMARY KEY IDENTITY,
+	PaymentDate DATETIME2,
+	PaymentAmount DECIMAL(10,2),
+	StudentID INT FOREIGN KEY REFERENCES Students(StudentID)
+)
+
+CREATE TABLE Subjects
+(
+	SubjectID INT PRIMARY KEY IDENTITY,
+	SubjectName VARCHAR(32)
+)
+
+CREATE TABLE Agenda
+(
+	StudentID INT FOREIGN KEY REFERENCES Students(StudentID),
+	SubjectID INT FOREIGN KEY REFERENCES Subjects(SubjectID),
+	CONSTRAINT PK_Agenda PRIMARY KEY(StudentID,SubjectID)
+)
+USE Geography
+
+--Example of Joining Countries, With their Country codes and Names of the country
+
+SELECT Countries.CountryName, MountainsCountries.CountryCode, Mountains.MountainRange, MountainId FROM MountainsCountries
+JOIN Countries ON Countries.CountryCode = MountainsCountries.CountryCode
+JOIN Mountains ON Mountains.Id = MountainsCountries.MountainId
+
+--9.
+--Show all peaks in 'Rila' Bulgaria in Descending Order
+
+SELECT MountainRange, PeakName, Elevation FROM Peaks
+JOIN Mountains ON Peaks.MountainId = Mountains.Id
+WHERE MountainId = 17
+ORDER BY Elevation DESC
