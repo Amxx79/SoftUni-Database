@@ -52,5 +52,41 @@ SELECT FirstName, LastName
 FROM Employees
 WHERE LEN(LastName) = 5
 
+USE SoftUni
+
 --10
---TOMOROW I SHOW YOU
+SELECT EmployeeID, FirstName, LastName, Salary,
+DENSE_RANK() OVER
+(PARTITION BY Salary ORDER BY EmployeeID)
+FROM Employees
+WHERE Salary BETWEEN 10000 AND 50000
+ORDER BY Salary DESC
+
+--11
+--With Column Table Expression
+WITH CTE_RankSelection AS
+(
+	SELECT EmployeeID, FirstName, LastName, Salary,
+	DENSE_RANK() OVER
+	(PARTITION BY Salary ORDER BY EmployeeID) AS [Rank]
+	FROM Employees
+	WHERE Salary BETWEEN 10000 AND 50000
+)
+
+SELECT * FROM CTE_RankSelection
+WHERE [Rank] = 2
+	ORDER BY Salary DESC
+
+--Nested query 
+SELECT * FROM 
+(
+	SELECT EmployeeID, FirstName, LastName, Salary,
+	DENSE_RANK() OVER
+	(PARTITION BY Salary ORDER BY EmployeeID) AS [Rank]
+	FROM Employees
+	WHERE Salary BETWEEN 10000 AND 50000
+) AS Result
+WHERE Result.Rank = 2
+	ORDER BY Salary DESC
+
+
