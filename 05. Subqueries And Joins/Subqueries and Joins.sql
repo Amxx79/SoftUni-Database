@@ -116,3 +116,41 @@ JOIN Mountains AS m ON mc.MountainId = m.Id
 WHERE CountryName IN ('Russia', 'United States', 'Bulgaria')
 GROUP BY c.CountryCode
 
+--14
+USE Geography
+
+SELECT TOP(5) c.CountryName, r.RiverName
+	FROM Countries AS c
+JOIN CountriesRivers AS cr ON c.CountryCode = cr.CountryCode
+JOIN Rivers AS r ON cr.RiverId = r.Id
+JOIN Continents AS cnt ON c.ContinentCode = cnt.ContinentCode
+WHERE cnt.ContinentName = 'Africa'
+ORDER BY c.CountryName
+
+--15
+USE Geography
+
+WITH CurrencyCounts AS
+(
+    SELECT 
+           ContinentCode,
+           CurrencyCode,
+           COUNT(CurrencyCode) AS CurrencyCount,
+           DENSE_RANK() OVER(PARTITION BY ContinentCode ORDER BY COUNT(CurrencyCode) DESC)
+           AS CurrencyRank
+      FROM Countries
+  GROUP BY ContinentCode, CurrencyCode
+)
+  SELECT ContinentCode,
+         CurrencyCode,
+         CurrencyCount
+    FROM CurrencyCounts
+   WHERE CurrencyCount > 1 AND CurrencyRank = 1
+ORDER BY ContinentCode, CurrencyCode
+
+--16
+SELECT COUNT(*) AS [Count]
+	FROM Countries 
+WHERE CountryCode NOT IN 
+(SELECT DISTINCT CountryCode FROM MountainsCountries)
+
