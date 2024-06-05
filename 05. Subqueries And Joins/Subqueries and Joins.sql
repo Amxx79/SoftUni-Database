@@ -150,7 +150,55 @@ ORDER BY ContinentCode, CurrencyCode
 
 --16
 SELECT COUNT(*) AS [Count]
-	FROM Countries 
+	FROM Countries
 WHERE CountryCode NOT IN 
 (SELECT DISTINCT CountryCode FROM MountainsCountries)
+
+--17
+WITH CTE_COUNTRYRIVERSMOUNTAINS AS
+(
+SELECT CountryName, [HighestPeakElevation] = 
+
+	CASE
+		WHEN MAX(p.Elevation) IS NULL THEN NULL
+		ELSE MAX(p.Elevation)
+	END, [LongestRiverLength] = 
+	CASE
+		WHEN MAX(r.Length) IS NULL THEN NULL
+		ELSE MAX(r.Length)
+	END
+		FROM Countries AS c
+	JOIN MountainsCountries AS mc ON c.CountryCode = mc.CountryCode
+	JOIN Mountains AS m ON mc.MountainId = m.Id
+	JOIN Peaks AS p ON m.Id = p.MountainId
+	JOIN CountriesRivers AS cr ON c.CountryCode = cr.CountryCode
+	JOIN Rivers AS r ON cr.RiverId = r.Id
+	GROUP BY CountryName
+)
+
+SELECT TOP(5) * FROM CTE_COUNTRYRIVERSMOUNTAINS
+ORDER BY HighestPeakElevation DESC, LongestRiverLength DESC, CountryName ASC
+
+--18
+WITH PeakRanked AS
+(
+	SELECT CountryName AS Country,
+	   p.PeakName,
+	   p.Elevation,
+	   m.MountainRange,
+	   DENSE_RANK() OVER 
+		   (PARTITION BY CountryName ORDER BY Elevation DESC) AS PeakRank
+	FROM Countries AS c
+	LEFT JOIN MountainsCountries AS mc ON c.CountryCode = mc.CountryCode
+	LEFT JOIN Mountains AS m ON mc.MountainId = m.Id
+	LEFT JOIN Peaks AS p ON m.Id = p.MountainId
+)
+SELECT TOP(5) Country,
+	ISNULL(PeakName, '(no highest peak)') AS [Highest Peak Name],
+	ISNULL(Elevation, 0) AS [Highest Peak Elevation],
+	ISNULL(MountainRange, '(no mountain)') AS [Mountain]
+	FROM PeakRanked
+	WHERE PeakRank = 1
+ORDER BY Country, [Highest Peak Name]
+
 
