@@ -86,3 +86,33 @@ d.Name AS DeparmentName
 JOIN Employees AS emp ON e.ManagerID = emp.EmployeeID
 JOIN Departments AS d ON e.DepartmentID = d.DepartmentID
 ORDER BY e.EmployeeID
+
+--11
+USE SoftUni
+
+SELECT TOP(1) AVG(Salary) MinAvgSalary
+FROM 
+Employees
+GROUP BY DepartmentID
+ORDER BY MinAvgSalary
+
+--12
+USE Geography
+
+SELECT c.CountryCode, m.MountainRange, p.PeakName, p.Elevation
+	FROM Countries AS c
+JOIN MountainsCountries AS mc ON c.CountryCode = mc.CountryCode
+JOIN Mountains AS m ON mc.MountainId = m.Id
+JOIN Peaks AS p ON p.MountainId = m.Id
+WHERE c.CountryName = 'Bulgaria' AND p.Elevation > 2835
+ORDER BY p.Elevation DESC
+
+--13
+SELECT c.CountryCode,  [MountainRanges] = 
+	COUNT(m.MountainRange)
+	FROM Countries AS c
+JOIN MountainsCountries AS mc ON c.CountryCode = mc.CountryCode
+JOIN Mountains AS m ON mc.MountainId = m.Id
+WHERE CountryName IN ('Russia', 'United States', 'Bulgaria')
+GROUP BY c.CountryCode
+
