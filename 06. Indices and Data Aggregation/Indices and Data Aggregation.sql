@@ -125,4 +125,41 @@ SELECT DepartmentID, AVG(Salary) AS AverageSalary
 	FROM RichEmployees
 	GROUP BY DepartmentId
 
- 
+--16
+SELECT DepartmentID, MAX(Salary) AS MaxSalary
+	FROM Employees
+GROUP BY DepartmentID
+HAVING MAX(Salary) < 30000 OR MAX(Salary) > 70000
+
+--17
+SELECT COUNT(*) AS Count
+	FROM Employees
+	WHERE ManagerID IS NULL
+
+--18
+SELECT DepartmentId, Salary FROM
+(
+	SELECT DepartmentID, Salary,
+		ROW_NUMBER()
+			OVER (PARTITION BY DepartmentId ORDER BY Salary DESC) AS ThirdHighestSalary
+		FROM Employees
+		GROUP BY DepartmentID, Salary
+) AS query
+WHERE ThirdHighestSalary = 3
+	ORDER BY DepartmentID
+
+--19
+
+WITH AverageSalaries 
+AS
+(
+	SELECT DepartmentID, AVG(Salary) AS AverageSalary
+		FROM Employees
+		GROUP BY DepartmentID
+) 
+SELECT TOP(10) FirstName, LastName, e.DepartmentID
+	FROM Employees AS e
+JOIN AverageSalaries ON e.DepartmentID = AverageSalaries.DepartmentID
+WHERE Salary > AverageSalary 
+ORDER BY DepartmentId
+
