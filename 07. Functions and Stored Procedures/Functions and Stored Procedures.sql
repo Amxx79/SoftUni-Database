@@ -137,3 +137,78 @@ BEGIN
 	SELECT COUNT(*) FROM Employees
 	WHERE DepartmentId = @departmentId
 END
+
+--9
+USE Bank
+
+CREATE OR ALTER PROCEDURE usp_GetHoldersFullName 
+AS
+BEGIN
+	SELECT CONCAT_WS(' ', FirstName, LastName) AS [Full Name]
+		FROM AccountHolders
+END
+
+EXEC usp_GetHoldersFullName
+
+--10
+CREATE OR ALTER PROCEDURE usp_GetHoldersWithBalanceHigherThan(@number MONEY)
+AS
+BEGIN
+	SELECT FirstName, LastName FROM
+	(
+		SELECT FirstName, LastName, SUM(a.Balance) As TotalMoney
+			FROM AccountHolders AS ah
+			JOIN Accounts AS a ON a.AccountHolderId = ah.Id
+			GROUP BY FirstName, LastName
+	)  AS query
+	WHERE @number < TotalMoney
+	ORDER BY FirstName, LastName
+END
+
+EXEC usp_GetHoldersWithBalanceHigherThan 1000000
+
+
+--11
+CREATE OR ALTER FUNCTION ufn_CalculateFutureValue(@sum DECIMAL(10,4), @interestRate FLOAT, @numberOfYears INT)
+RETURNS DECIMAL(10,4)
+AS
+BEGIN
+	DECLARE @result DECIMAL(10,4)
+	SET @result = @sum * POWER((1 + @interestRate), @numberOfYears)
+	RETURN @result
+END
+
+SELECT dbo.ufn_CalculateFutureValue(1000, 0.1, 5) AS [Output]
+
+--12
+CREATE OR ALTER PROCEDURE usp_CalculateFutureValueForAccount(@accountId INT, @interestRate FLOAT)
+AS 
+BEGIN
+	DECLARE @term INT = 5
+	SELECT ah.Id AS [Account Id], FirstName, LastName, 
+	a.Balance AS [Current Balance], dbo.ufn_CalculateFutureValue(Balance, @interestRate, @term) AS [Balance in 5 years]
+		FROM AccountHolders AS ah
+		JOIN Accounts AS a ON ah.Id = a.AccountHolderId
+	WHERE @accountId = a.Id
+END
+
+EXEC usp_CalculateFutureValueForAccount 1, 0.05
+
+--13
+USE Diablo 
+
+CREATE FUNCTION ufn_CashInUsersGames(@gameName VARCHAR(MAX))
+RETURNS TABLE
+AS
+RETURN(
+SELECT SUM(Cash) AS [Sum]
+	FROM (
+	SELECT ug.Cash AS Cash, ROW_NUMBER() OVER (ORDER BY ug.Cash DESC) AS Rows
+		FROM Games AS g
+		JOIN UsersGames AS ug ON ug.GameId = g.Id
+		WHERE g.[Name] = @gameName) AS query
+		WHERE Rows % 2 = 1
+)
+
+SELECT * FROM ufn_CashInUsersGames('Love in a mist')
+
