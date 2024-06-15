@@ -1,0 +1,19 @@
+
+BEGIN TRANSACTION
+DELETE 
+	FROM TrainsRailwayStations
+	WHERE TrainId = 7
+
+DELETE 
+FROM Tickets
+WHERE TrainId = 7
+
+DELETE 
+FROM MaintenanceRecords
+WHERE TrainId = 7
+
+DELETE
+	FROM Trains
+	WHERE Id = 7
+
+ROLLBACK TRANSACTION
