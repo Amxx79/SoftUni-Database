@@ -119,6 +119,11 @@ SELECT Id, [Name], PhoneNumber
 	WHERE Id NOT IN (SELECT TouristId FROM Bookings)
 	ORDER BY [Name]
 
+SELECT Id, [Name], PhoneNumber
+FROM Tourists
+WHERE Id NOT IN (SELECT TouristId FROM Bookings)
+ORDER BY [Name]
+
 --08
 SELECT TOP(10) h.[Name] AS HotelName, d.[Name] AS DestinationName, c.[Name] AS CountryName
 	FROM Bookings AS b
@@ -131,7 +136,7 @@ SELECT TOP(10) h.[Name] AS HotelName, d.[Name] AS DestinationName, c.[Name] AS C
 
 
 --09
-SELECT h.[Name], r.Price
+SELECT h.[Name], t.Name, r.Price
 	FROM Tourists AS t
 	JOIN Bookings AS b ON b.TouristId = t.Id
 	JOIN Hotels AS h ON h.Id = b.HotelId
@@ -141,10 +146,39 @@ SELECT h.[Name], r.Price
 
 
 --10
-SELECT * 
+SELECT h.[Name],
+	SUM(DATEDIFF(DAY, b.ArrivalDate, b.DepartureDate) * r.Price) AS HotelRevenue
 	FROM Bookings AS b
+	JOIN Hotels AS h ON b.HotelId = h.Id
+	JOIN Rooms AS r ON r.Id= b.RoomId
+	GROUP BY h.[Name]
+	ORDER BY HotelRevenue DESC
 
+--11
+CREATE FUNCTION udf_RoomsWithTourists(@name VARCHAR(50))
+RETURNS INT
+AS
+BEGIN
+RETURN(
+SELECT SUM(AdultsCount + ChildrenCount)
+	FROM Bookings AS b
+	JOIN Rooms AS r ON r.Id = b.RoomId
+	WHERE r.[Type] = @name)
+END
 
+SELECT dbo.udf_RoomsWithTourists('Double Room')
 
-	
+--12
+CREATE PROCEDURE usp_SearchByCountry(@country VARCHAR(50))
+AS
+BEGIN
+SELECT t.[Name], PhoneNumber, Email, 
+	COUNT(b.Id)
+	FROM Tourists AS t
+	JOIN Bookings AS b ON b.TouristId = t.Id
+	JOIN Countries AS c ON c.Id = t.CountryId
+	WHERE c.[Name] = @country
+	GROUP BY t.[Name], PhoneNumber, Email
+END
 
+EXEC usp_SearchByCountry 'Greece'
